@@ -6,6 +6,7 @@ import argparse
 import asyncio
 import json
 import logging
+import os
 import sys
 from pathlib import Path
 
@@ -98,7 +99,10 @@ def cmd_trade(args: argparse.Namespace, cfg: Config) -> int:
         if cfg.mode == "live":
             if not args.i_understand_live_risk:
                 raise SystemExit("live mode requires --i-understand-live-risk")
-            assert_live_allowed(cfg, storage)
+            try:
+                assert_live_allowed(cfg, storage)
+            except RuntimeError as exc:
+                raise SystemExit(f"live mode blocked: {exc}") from None
             creds = LiveCredentials.from_env()
             if creds is None:
                 raise SystemExit("live mode requires POLYMARKET_PRIVATE_KEY in the environment")
@@ -155,8 +159,22 @@ def cmd_dashboard(args: argparse.Namespace, cfg: Config) -> int:
     import subprocess
 
     dashboard = Path(__file__).with_name("dashboard.py")
+    env = {
+        **os.environ,
+        "STREAMLIT_SERVER_HEADLESS": "true",
+        "STREAMLIT_BROWSER_GATHER_USAGE_STATS": "false",
+    }
     return subprocess.call(
-        [sys.executable, "-m", "streamlit", "run", str(dashboard), "--server.port", str(args.port)]
+        [
+            sys.executable,
+            "-m",
+            "streamlit",
+            "run",
+            str(dashboard),
+            "--server.port",
+            str(args.port),
+        ],
+        env=env,
     )
 
 
