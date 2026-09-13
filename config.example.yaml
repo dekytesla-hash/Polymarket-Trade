@@ -1,0 +1,48 @@
+mode: paper
+
+binance:
+  symbol: btcusdt
+  rest_base: https://data-api.binance.vision
+  ws_base: wss://data-stream.binance.vision/stream
+  depth_levels: 20
+  depth_update_ms: 100
+
+polymarket:
+  gamma_base: https://gamma-api.polymarket.com
+  clob_base: https://clob.polymarket.com
+  clob_ws: wss://ws-subscriptions-clob.polymarket.com/ws/market
+  slug_prefix: btc-updown-5m
+  window_seconds: 300
+  no_trade_head_seconds: 15
+  no_trade_tail_seconds: 20
+
+features:
+  ofi_levels: [1, 5, 10, 20]
+  momentum_windows_s: [60, 300, 900]
+  vol_windows_s: [60, 300, 900]
+  book_slope_levels: 10
+
+model:
+  horizon_seconds: 300
+  n_folds: 6
+  calibration_fraction: 0.2
+  calibration_method: isotonic   # isotonic | sigmoid (Platt)
+  embargo_seconds: 900
+  model_dir: models
+
+trading:
+  min_edge: 0.04        # required edge after costs
+  cost: 0.01            # spread/slippage assumption in probability units
+  kelly_fraction: 0.25  # fractional Kelly
+  max_stake_usdc: 5.0   # paper-mode cap per trade
+  bankroll_usdc: 500.0
+  max_spread: 0.06
+  min_book_size: 20.0
+  live_min_trades: 300  # paper trades required before live mode unlocks
+  live_min_t_stat: 2.0
+  live_max_stake_usdc: 1.0
+
+storage:
+  db_path: data/pm5.db
+  parquet_dir: data/parquet
+  snapshot_interval_s: 1.0
